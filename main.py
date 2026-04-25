@@ -51,5 +51,5 @@ def delete_product(id: int, db: Session = Depends(get_db)):
     return {"message": "Product deleted"}
 @app.get("/")
 def home():
-    return {"message": "Welcome to my API 🚀 "
+    return {"message": "Welcome to my API  "
                    "the server is running"}
