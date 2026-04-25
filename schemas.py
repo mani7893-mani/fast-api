@@ -1,11 +1,12 @@
 from pydantic import BaseModel
 
 class UserCreate(BaseModel):
-    name: str
-    age: int
+    product_name: str
+    product_cost: int
+    quantity:int
 
 class UserResponse(UserCreate):
-    id: int
+    product_id: int
 
     class Config:
         from_attributes = True

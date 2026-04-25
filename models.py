@@ -4,6 +4,7 @@ from database import Base
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
-    name = Column(String(50))
-    age = Column(Integer)
+    product_id = Column(Integer, primary_key=True)
+    product_name = Column(String(50))
+    product_cost = Column(Integer)
+    quantity=Column(Integer)

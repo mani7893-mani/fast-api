@@ -11,7 +11,7 @@ Base.metadata.create_all(bind=engine)
 def create_user(user: UserCreate):
     db = SessionLocal()
 
-    new_user = User(name=user.name, age=user.age)
+    new_user = User(product_name=user.product_name, product_cost=user.product_cost,quantity=user.quantity)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
