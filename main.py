@@ -1,40 +1,56 @@
 from fastapi import FastAPI, HTTPException
 from database import engine, SessionLocal, Base
-from models import User
+from models import Table as Product
 from schemas import UserCreate, UserResponse
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
-@app.post("/users", response_model=UserResponse)
-def create_user(user: UserCreate):
+
+# ✅ Create Product
+@app.post("/product", response_model=UserResponse)
+def create_product(product: UserCreate):
     db = SessionLocal()
 
-    new_user = User(product_name=user.product_name, product_cost=user.product_cost,quantity=user.quantity)
-    db.add(new_user)
+    new_product = Product(
+        product_name=product.product_name,
+        product_cost=product.product_cost,
+        quantity=product.quantity
+    )
+
+    db.add(new_product)
     db.commit()
-    db.refresh(new_user)
-
+    db.refresh(new_product)
     db.close()
-    return new_user
 
-@app.get("/users", response_model=list[UserResponse])
-def get_users():
+    return new_product
+
+
+# ✅ Get All Products
+@app.get("/products", response_model=list[UserResponse])
+def get_products():
     db = SessionLocal()
-    users = db.query(User).all()
+
+    products = db.query(Product).all()
     db.close()
-    return users
-@app.get("/users/{id}", response_model=UserResponse)
-def get_user(id: int):
+
+    return products
+
+
+# ✅ Get Product by ID
+@app.get("/product/{id}", response_model=UserResponse)
+def get_product(id: int):
     db = SessionLocal()
-    user = db.query(User).filter(User.id == id).first()
+
+    db_product = db.query(Product).filter(Product.id == id).first()
     db.close()
 
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product not found")
 
-    return user
+    return db_product
+
 @app.get("/")
 def home():
     return {"message": "API is running"}
