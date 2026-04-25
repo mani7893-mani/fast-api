@@ -1,56 +1,51 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from sqlalchemy.orm import Session
 from database import engine, SessionLocal, Base
-from models import Table as Product
-from schemas import UserCreate, UserResponse
+import crud
+from schemas import ProductCreate, ProductResponse
 
 app = FastAPI()
 
 Base.metadata.create_all(bind=engine)
 
 
-# ✅ Create Product
-@app.post("/product", response_model=UserResponse)
-def create_product(product: UserCreate):
+def get_db():
     db = SessionLocal()
-
-    new_product = Product(
-        product_name=product.product_name,
-        product_cost=product.product_cost,
-        quantity=product.quantity
-    )
-
-    db.add(new_product)
-    db.commit()
-    db.refresh(new_product)
-    db.close()
-
-    return new_product
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-# ✅ Get All Products
-@app.get("/products", response_model=list[UserResponse])
-def get_products():
-    db = SessionLocal()
-
-    products = db.query(Product).all()
-    db.close()
-
-    return products
+@app.post("/product", response_model=ProductResponse)
+def create_product(product: ProductCreate, db: Session = Depends(get_db)):
+    return crud.create_product(db, product)
 
 
-# ✅ Get Product by ID
-@app.get("/product/{id}", response_model=UserResponse)
-def get_product(id: int):
-    db = SessionLocal()
+@app.get("/products", response_model=list[ProductResponse])
+def get_products(db: Session = Depends(get_db)):
+    return crud.get_products(db)
 
-    db_product = db.query(Product).filter(Product.id == id).first()
-    db.close()
 
-    if not db_product:
+@app.get("/product/{id}", response_model=ProductResponse)
+def get_product(id: int, db: Session = Depends(get_db)):
+    product = crud.get_product(db, id)
+    if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    return product
 
-    return db_product
 
-@app.get("/")
-def home():
-    return {"message": "API is running"}
+@app.put("/product/{id}", response_model=ProductResponse)
+def update_product(id: int, product: ProductCreate, db: Session = Depends(get_db)):
+    updated = crud.update_product(db, id, product)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return updated
+
+
+@app.delete("/product/{id}")
+def delete_product(id: int, db: Session = Depends(get_db)):
+    deleted = crud.delete_product(db, id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return {"message": "Product deleted"}
